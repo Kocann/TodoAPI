@@ -4,11 +4,18 @@ const request = require('supertest');
 const { app } = require('./../server');
 const { Todo } = require('./../models/todo');
 
+let dummyTodos = [
+  {text: 'first test todo'},
+  {text: 'second todo'}
+];
+
 //clear all database before each test
 // do this ony when testing db connection
 // NOT ON REAL DATABASES!!!! JUST TEST DBS
 beforeEach((done) => {
-  Todo.remove({}).then(()=>done());
+  Todo.remove({}).then(()=>{
+    return Todo.insertMany(dummyTodos);
+  }).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -25,7 +32,7 @@ describe('POST /todos', () => {
       .end((err, res) => {
         if (err) {return done(err);}
 
-        Todo.find()
+        Todo.find({text})
             .then((todos) => {
               expect(todos.length).toBe(1);
               expect(todos[0].text).toBe(text)
@@ -49,7 +56,7 @@ describe('POST /todos', () => {
 
         Todo.find()
             .then((todos) => {
-              expect(todos.length).toBe(0);
+              expect(todos.length).toBe(2);
               done();
             })
             .catch((err) => {
@@ -57,4 +64,19 @@ describe('POST /todos', () => {
             })
       })
   })
+});
+
+describe('GET /todos', () => {
+  it('should NOT create a new todo with invalid body data', (done) => {
+    request(app)
+    .get('/todos')
+    .expect(200)
+    .expect((res)=>{
+      expect(res.body.todos.length).toBe(2);
+    })
+    .end((err, res) => {
+      if (err) {return done(err);}
+      done();
+    });
+  });
 });
