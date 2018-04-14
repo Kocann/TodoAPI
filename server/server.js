@@ -72,7 +72,6 @@ app.delete('/todos/:id', (req, res) => {
 app.patch('/todos/:id', (req, res) => {
   let todoId = req.params.id;
   let body = _.pick(req.body, ['text', 'completed']);
-
   if (!ObjectID.isValid(todoId)) {
     res.sendStatus(404).send()
   }
@@ -83,10 +82,9 @@ app.patch('/todos/:id', (req, res) => {
     body.completed = false;
     body.completedAt = null;
   }
-
   Todo.findByIdAndUpdate(todoId,
   { $set: body },
-  { $new: true }
+  { new: true }
   ).then((todo) => {
     if (!todo) {
       res.sendStatus(404).send();

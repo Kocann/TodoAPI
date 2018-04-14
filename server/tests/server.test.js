@@ -9,7 +9,9 @@ let dummyTodos = [
   {text: 'first test todo',
   _id: new ObjectID()},
   {text: 'second todo',
-  _id: new ObjectID()}
+  _id: new ObjectID(),
+  completed: true, 
+  completedAt: 333}
 ];
 
 //clear all database before each test
@@ -147,6 +149,44 @@ describe('DELETE todos/:id', () => {
     request(app)
       .delete('/todos/124')
       .expect(404)
+      .end((err, res) => {
+        if (err) {return done(err)}
+        done();
+      })
+  })
+})
+
+describe('PATCH /todos/:id', () => {
+  it('should update the todo to be completed', (done) => {
+    request(app)
+      .patch(`/todos/${dummyTodos[0]._id.toHexString()}`)
+      .send({
+        completed: true,
+        text: 'trolo'
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.completed).toBe(true);
+        expect(typeof(res.body.todo.completedAt)).toBe('number')
+      })
+      .end((err, res) => {
+        if (err) {return done(err)}
+        done();
+      })
+  })
+
+  it('should update the todo to be uncompleted', (done) => {
+    request(app)
+      .patch(`/todos/${dummyTodos[1]._id.toHexString()}`)
+      .send({
+        completed: false,
+        text: 'trolo'
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.completed).toBeFalsy();
+        expect(res.body.todo.completedAt).toBeNull();
+      })
       .end((err, res) => {
         if (err) {return done(err)}
         done();
