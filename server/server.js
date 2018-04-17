@@ -94,6 +94,24 @@ app.patch('/todos/:id', (req, res) => {
   })
   .catch((e) => {console.log(e)});
 })
+
+app.post('/users', (req, res) => {
+  let body = _.pick(req.body, ['email', 'password']);
+
+  let user = new User(body)
+
+  user.save().then(
+    () => {
+      return user.generateAuthToken();
+    },
+    (err) => {
+      res.sendStatus(400).send(err);
+    }
+  ).then((token) => {
+    res.header('x-auth', token).send(user);
+  })
+  .catch(e => res.sendStatus(400).send(err))
+})
 const port = process.env.PORT;
 app.listen(port, () => {
   console.log(`'listening on port ${port}`);
