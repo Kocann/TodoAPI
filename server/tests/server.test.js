@@ -4,24 +4,15 @@ const {ObjectID} = require('mongodb');
 
 const { app } = require('./../server');
 const { Todo } = require('./../models/todo');
+const { User } = require('./../models/users');
 
-let dummyTodos = [
-  {text: 'first test todo',
-  _id: new ObjectID()},
-  {text: 'second todo',
-  _id: new ObjectID(),
-  completed: true, 
-  completedAt: 333}
-];
+const {dummyTodos, populateTodos, users, populateUsers} = require('./seed/seed');
 
+beforeEach(populateUsers);
 //clear all database before each test
 // do this ony when testing db connection
 // NOT ON REAL DATABASES!!!! JUST TEST DBS
-beforeEach((done) => {
-  Todo.remove({}).then(()=>{
-    return Todo.insertMany(dummyTodos);
-  }).then(() => done());
-});
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
   it('should create a new todo', (done) => {
@@ -191,5 +182,77 @@ describe('PATCH /todos/:id', () => {
         if (err) {return done(err)}
         done();
       })
+  })
+})
+
+describe('GET /users/me', () => {
+  it('should return authenticated user', (done) => {
+    request(app)
+      .get(`/users/me`)
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        expect(res.body.email).toBe(users[0].email);
+      })
+      .end((err, res) => {
+        if (err) {return done(err)}
+        done();
+      })
+  })
+
+  it('should return authenticated user', (done) => {
+    request(app)
+      .get(`/users/me`)
+      .expect(401)
+      .expect((res) => {
+        expect(res.body).toEqual({});
+      })
+      .end((err, res) => {
+        if (err) {return done(err)}
+        done();
+      })
+  })
+})
+
+describe('POST /users', () => {
+  it('should create user', (done) => {
+    request(app)
+      .post(`/users`)
+      .send({
+        email: 'testemail@wp.pl',
+        password: 'testpassword'
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.email).toBe('testemail@wp.pl');
+      })
+      .end((err, res) => {
+        if (err) {return done(err)}
+        done();
+      })
+      
+  })
+
+  it('should return validaion error if request invalid', (done) => {
+    request(app)
+      .post('/users')
+      .send({
+        email: 'wrongEmmal',
+        password: 'pass'
+      })
+      .expect(400)
+      .end(done)
+  })
+
+  it('should not create a user if email in use', (done) => {
+    request(app)
+      .post('/users')
+      .send({
+        email: 'nieanna@trollo.pl',
+        password: 'pass'
+      })
+      .expect(400)
+      .end(done)
   })
 })
