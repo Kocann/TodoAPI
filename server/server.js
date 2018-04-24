@@ -116,7 +116,7 @@ app.post('/users', (req, res) => {
 
 app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
-})
+});
 
 const port = process.env.PORT;
 app.listen(port, () => {
