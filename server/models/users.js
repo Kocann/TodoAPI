@@ -33,6 +33,8 @@ var UserSchema = new mongoose.Schema({
   }]
 });
 
+// toJSON is the method which is executed when geting data from db
+// we override default method so not the whole object is returned but properties which we want
 UserSchema.methods.toJSON = function () {
   var user = this;
   var userObject = user.toObject();
@@ -69,6 +71,28 @@ UserSchema.statics.findByToken = function(token) {
     'tokens.token': token,
     'tokens.access': 'auth'
   });
+}
+
+UserSchema.statics.findByCredentials = function(email, password) {
+  let User = this;
+
+  return User.findOne({
+    email
+  }).then((user) => {
+    if (!user) {
+      return Promise.reject();
+    }
+
+    return new Promise((res, rej) => {
+      bcrypt.compare(password, user.password, (err, response) => {
+        if (response) {
+          res(user);
+        } else {
+          rej();
+        }
+      });
+    })
+  })
 }
 
 UserSchema.pre('save', function(next) {
