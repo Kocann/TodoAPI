@@ -56,6 +56,20 @@ UserSchema.methods.generateAuthToken = function () {
   )
 }
 
+UserSchema.methods.removeToken = function(token) {
+  let user = this;
+
+  return user.update({
+    $pull: {
+      tokens: {
+        token: token
+      }
+    }
+  })
+}
+
+
+// statics are not executed on instances when methods are
 UserSchema.statics.findByToken = function(token) {
   let User = this;
   let decoded;

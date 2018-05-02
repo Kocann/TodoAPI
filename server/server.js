@@ -131,6 +131,15 @@ app.post('/users/login', (req, res) => {
   .catch(e => res.sendStatus(404).send(e))
 });
 
+app.delete('/users/me/token', authenticate, (req, res) => {
+  let user = req.user;
+
+  user.removeToken(req.token).then(
+    () => {res.sendStatus(200).send()},
+    () => {res.sendStatus(400).send()}
+  )
+})
+
 const port = process.env.PORT;
 app.listen(port, () => {
   console.log(`'listening on port ${port}`);

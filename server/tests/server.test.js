@@ -256,3 +256,48 @@ describe('POST /users', () => {
       .end(done)
   })
 })
+
+describe('POST /users/login', () => {
+  it('should login user and return token', (done) => {
+    request(app)
+      .post(`/users/login`)
+      .send({
+        email: users[0].email,
+        password: users[0].password
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toBeTruthy();
+      })
+      .end((err, res) => {
+        if (err) {return done(err)}
+
+        User.findById(users[0]._id).then(user => {
+          expect(user.tokens[1]).toHaveProperty(
+            'token', res.headers['x-auth']
+          );
+          done()
+        })
+        .catch(e => done(e));
+      })
+  })
+
+  it('should not login user and not have token', (done) => {
+    request(app)
+      .post(`/users/login`)
+      .send({
+        email: users[0].email,
+        password: 'sssss'
+      })
+      .expect(404)
+      .end((err, res) => {
+        if (err) {return done(err)}
+
+        User.findById(users[0]._id).then(user => {
+          expect(user.tokens.length).toBe(1);
+          done()
+        })
+        .catch(e => done(e));
+      })
+  })
+})
