@@ -27,11 +27,13 @@ const users = [{
 
 let dummyTodos = [
   {text: 'first test todo',
-  _id: new ObjectID()},
+  _id: new ObjectID(),
+  _creator: userOneId},
   {text: 'second todo',
   _id: new ObjectID(),
   completed: true, 
-  completedAt: 333}
+  completedAt: 333,
+  _creator: userTwoId}
 ];
 
 const populateTodos = (done) => {
